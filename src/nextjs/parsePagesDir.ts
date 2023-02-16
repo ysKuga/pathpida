@@ -16,7 +16,14 @@ export const createMethods = (
     importName ? `query${importName.startsWith('Optional') ? '?' : ''}: ${importName}, ` : ''
   }hash?: string }) => ({ pathname: '${pathname}' as const${
     slugs.length
-      ? `, query: { ${slugs.join(', ')}${
+      ? `, query: { ${slugs
+          .map(slug => {
+            if (slug.indexOf('-') >= 0) {
+              return `'${slug}': ${slug.replace(/-/g, '_')}`
+            }
+            return slug
+          })
+          .join(', ')}${
           importName ? `, ...url${importName.startsWith('Query') ? '' : '?'}.query` : ''
         } }`
       : importName
@@ -77,7 +84,9 @@ export const parsePagesDir = (
 
         if (basename.startsWith('[') && basename.endsWith(']')) {
           const slug = basename.replace(/[.[\]]/g, '')
-          valFn = `${indent}${`_${slug}`}: (${slug}${basename.startsWith('[[') ? '?' : ''}: ${
+          valFn = `${indent}"${`_${slug}`}": (${slug.replace(/-/g, '_')}${
+            basename.startsWith('[[') ? '?' : ''
+          }: ${
             /\[\./.test(basename) ? 'string[]' : 'string | number'
           }) => ({\n<% next %>\n${indent}})`
           newSlugs.push(slug)
